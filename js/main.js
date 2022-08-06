@@ -1,13 +1,11 @@
 const $ul = document.querySelector('#people_list');
 
 const addPersonItem = (person) => {
-    // <li class="list-group-item"> Name </li>
-    // const secondFilm = person?.['films']?.[1] ?? 'Unknown';
     const secondFilm = _.get(person, '["films"][1]', 'Unknown');
     const $li = document.createElement('li');
     $li.className = 'list-group-item';
+    $li.id = "elem";
 
-    // name + '(birth year: ' + birthYear + ')';
     $li.innerText = `
         ${person['name']}
         (birth year: ${person['birth_year']})
@@ -16,22 +14,66 @@ const addPersonItem = (person) => {
     $ul.appendChild($li);
 };
 
-// fetch('https://swapi.dev/api/people/?page=3')
-//     .then((response) => response.json()) // get json from response
-//     .then((json) => {
-//         json.results.forEach(person => {
+// it that right class?
+class Swapi {
+    constructor(page) {
+        this.page = page;
+    }
+    newPage(page) { 
+        this.page = page;
+    }
+    async getPeople(page) {
+        if (page > 0 || page < 4) {
+            const result = await fetch('https://swapi.dev/api/people/?page=' + page);
+            const data = await result.json();
+            // this.page = page;
+            return data;
+        }
+        return 0;
+    }
+}
+
+const swapiApi = new Swapi();
+// swapiApi
+//     .getPeople(1)
+//     .then((res) => {
+//         res.results.forEach(person => {
 //             addPersonItem(person);
-//         });
-//     }); // get data
+//         })
+//     })
+//     .catch(() => {
+//         console.error("ERROR!");
+//     })
+//     .finally(() => {
+//         const $preloader = document.querySelector("#preloader");
+//         $preloader? $preloader.remove() : null;
+//         const $pagination = document.querySelector("#pagination");
+//     });
 
-// request.catch();
-// request.finally();
 
-axios.get('https://swapi.dev/api/people/?page=3')
-    .then((res) => {
-        res.data.results.forEach(person => {
-            addPersonItem(person);
-            const $preloader = document.querySelector("#preloader");
-            $preloader ? $preloader.remove() : null;
-        })
-    });
+
+const changePage = (page, id) => { 
+    if (page > 0 && page < 4) {
+        $ul.innerHTML = '';
+        swapiApi
+            .getPeople(page)
+            .then((res) => {
+                console.log(res);
+                res.results.forEach(person => {
+                    addPersonItem(person);
+                })
+            })
+            .catch(() => {
+                console.error("ERROR!");
+            })
+            .finally(() => {
+                const $preloader = document.querySelector("#preloader");
+                $preloader ? $preloader.remove() : null;
+                const $pagination = document.querySelector("#pagination");
+            });
+    
+        swapiApi.newPage(page);
+    }
+}
+
+changePage(1, 'one');
